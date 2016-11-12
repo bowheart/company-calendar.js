@@ -1,0 +1,75 @@
+.cocal {
+	color: #666;
+	font-family: arial;
+}
+
+
+.cocal-header {
+	display: flex;
+	flex-flow: row nowrap;
+}
+
+.cocal-header-left, .cocal-header-center, .cocal-header-right {
+	align-items: center;
+	display: flex;
+	flex-flow: row nowrap;
+	flex: 1;
+}
+.cocal-header-center {
+	justify-content: space-between;;
+}
+.cocal-header-right {
+	justify-content: flex-end;
+}
+
+.cocal-header-item {
+	display: flex;
+}
+a.cocal-header-item {
+	cursor: pointer;
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+}
+
+.cocal-dayname {
+	padding: 0.4em;
+	text-align: center;
+}
+
+.cocal-week, .cocal-daynames {
+	border-bottom: 1px solid #ccc;
+	display: flex;
+	flex-flow: row nowrap;
+}
+
+.cocal-day, .cocal-dayname {
+	background: #fff;
+	border-left: 1px solid #ccc;
+	flex: 1;
+	position: relative;
+}
+.cocal-day:last-of-type, .cocal-dayname:last-of-type {
+	border-right: 1px solid #ccc;
+}
+
+.cocal-date-number {
+	padding: 0.5em;
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+.cocal-sans-edge-borders .cocal-week:last-of-type {
+	border-bottom: none;
+}
+.cocal-sans-edge-borders .cocal-day:first-of-type, .cocal-sans-edge-borders .cocal-dayname:first-of-type {
+	border-left: none;
+}
+.cocal-sans-edge-borders .cocal-day:last-of-type, .cocal-sans-edge-borders .cocal-dayname:last-of-type {
+	border-right: none;
+}
+
+.cocal-overflow-date {
+	background: rgba(0, 0, 0, 0.1);
+}

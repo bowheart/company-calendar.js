@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Company Calendar | Example 1</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.16.0/moment.min.js"></script>
+		<script src="../src/company-calendar.js"></script>
+		<link rel="stylesheet" href="../src/company-calendar.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<style>
+			body {
+				margin: 0;
+			}
+			
+			.cocal-header {
+				background: #00e7ff;
+				color: #fff;
+				font-size: 1.2em;
+				height: 50px;
+			}
+			.cocal-header-item {
+				padding: 0.8em;
+			}
+			.tagline {
+				color: red;
+				font-size: 0.6em;
+			}
+			.cocal-day {
+				min-height: 160px;
+			}
+		</style>
+	</head>
+	<body>
+		<script>
+			var calendar = cocal({
+				edgeBorders: false,
+				header: {
+					left: ['format(ddd, MMM DD)'],
+					center: ['<i class="fa fa-chevron-left"></i>::prev', 'format(MMMM YYYY)', '<i class="fa fa-chevron-right"></i>::next'],
+					right: ['<span class="tagline">This calendar rocketh</span>']
+				},
+				monthStart: 15,
+				weekStart: 2
+			})
+			
+			$('body').append(calendar.el)
+		</script>
+	</body>
+</html>
