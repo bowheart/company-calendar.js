@@ -54,7 +54,9 @@ a.cocal-header-item {
 }
 
 .cocal-date-number {
-	padding: 0.5em;
+	box-sizing: border-box;
+	height: 2em;
+	padding: 0.4em;
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -72,4 +74,13 @@ a.cocal-header-item {
 
 .cocal-overflow-date {
 	background: rgba(0, 0, 0, 0.1);
+}
+
+.cocal-event-line {
+	border-bottom: 0.2em solid #bbb;
+	margin-top: 1.4em;
+	width: 100%;
+}
+.cocal-event-line:first-of-type {
+	margin-top: 2.4em;
 }

@@ -7,12 +7,13 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.16.0/moment.min.js"></script>
 		<script src="../src/company-calendar.js"></script>
 		<link rel="stylesheet" href="../src/company-calendar.css">
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 		<style>
 			body {
 				margin: 0;
+				overflow-y: scroll;
 			}
-			
+
 			.cocal-header {
 				background: #00e7ff;
 				color: #fff;
@@ -35,6 +36,18 @@
 		<script>
 			var calendar = cocal({
 				edgeBorders: false,
+				events: [
+					{
+						name: 'A good party',
+						start: 1478718049738,
+						end: 1479234450519
+					},
+					{
+						name: 'A bad party',
+						start: 1478718049738,
+						end: 1479234450519
+					}
+				],
 				header: {
 					left: ['format(ddd, MMM DD)'],
 					center: ['<i class="fa fa-chevron-left"></i>::prev', 'format(MMMM YYYY)', '<i class="fa fa-chevron-right"></i>::next'],
@@ -43,7 +56,7 @@
 				monthStart: 15,
 				weekStart: 2
 			})
-			
+
 			$('body').append(calendar.el)
 		</script>
 	</body>
