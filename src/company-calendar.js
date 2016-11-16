@@ -16,10 +16,14 @@
 
 		init: function() {
 			this.el = $('<header class="cocal-header"></header>')
-			this.initPositions()
 		},
 
-		initPositions: function() {
+		draw: function() {
+			this.el.empty()
+			this.drawPositions()
+		},
+
+		drawPositions: function() {
 			for (var i = 0; i < this.positions.length; i++) {
 				var position = this.positions[i]
 				if (!this.config[position]) continue
@@ -57,8 +61,7 @@
 		},
 
 		update: function() {
-			this.el.empty()
-			this.initPositions() // TODO: make an intelligent diffing system, instead of just rewriting everything on update
+
 		}
 	}
 
@@ -118,15 +121,35 @@
 			var dateNumber = $('<span class="cocal-date-number">' + this.date.format('D') + '</span>')
 			if (date.date() === 1) dateNumber.text(date.format('MMMM') + ' ' + dateNumber.text())
 			this.el.append(dateNumber)
+
+			this.eventsWrapper = $('<div class="cocal-events-wrapper"></div>')
+			this.el.append(this.eventsWrapper)
+		},
+
+		appendEvent: function(position, eventEl) {
+			if (!eventEl || position > 4) return // only allow up to 4 events in a day. TODO: add a '+4 more' button TODO: dynamically decide how many events can be shown based on a day's height
+
+			// Put in placeholders up to the target position
+			while (this.eventsWrapper.children().length <= position) {
+				this.eventsWrapper.append($('<div class="cocal-event cocal-event-placeholder"></div>'))
+			}
+			this.eventsWrapper.children().eq(position).replaceWith(eventEl)
 		},
 
 		draw: function() {
-			for (var i = 0; i < this.events.length; i++) {
-				var event = this.events[i]
-				this.el.append(event.draw())
-			}
-
+			this.eventsWrapper.empty()
 			return this.el
+		},
+
+		firstAvailablePos(offset) {
+			var events = this.eventsWrapper.children()
+
+			for (var i = offset; i < events.length; i++) {
+				var event = events.eq(i)
+				if (event.hasClass('cocal-event-placeholder')) return i
+			}
+			if (i === offset) return offset
+			return i + 1
 		}
 	}
 
@@ -141,42 +164,157 @@
 		this.name = name
 		this.start = typeof start === 'number' ? moment(start) : start
 		if (end) this.end = typeof end === 'number' ? moment(end) : end
-		if (label) this.label
+		if (label) this.label = label
 		if (tags) this.tags = tags
 
-		this.drawn = false
+		this.dragging = false
 		this.init()
 	}
 	Event.prototype = {
 		init: function() {
-			this.el = $('<div class="cocal-event">' + this.name + '</div>')
-			var current = this.start.clone().startOf('day'),
-				end = this.end ? this.end.clone().startOf('day') : current.clone()
+			this.el = $('<div class="cocal-event"></div>')
+			this.draggable = $('<span class="cocal-draggable">' + this.name + '<span>')
+			this.el.append(this.draggable)
 
-			// Add this event to all the corresponding Day objects
-			while (current.isSameOrBefore(end)) {
-				var currentDay = this.body.findDay(current)
-				if (!currentDay) {
-					current.date(current.date() + 1)
-					continue // Date is out of range of the current calendar view range
+			if (this.label) {
+				this.el.add(this.draggable).addClass('label-' + this.label)
+			}
+		},
+		bindDrag: function() {
+			var self = this,
+				$document = $(document),
+				$body = $('body'),
+				draggable = this.draggable,
+				height, width, x, y, offsetX, offsetY
+
+			draggable.off('mousedown.cocalevent').on('mousedown.cocalevent', function(event) {
+				self.dragging = true
+				height = draggable.outerHeight()
+				width = draggable.outerWidth()
+				x = draggable.offset().left
+				y = draggable.offset().top
+				offsetX = event.pageX - x
+				offsetY = event.pageY - y
+
+				$body.append(draggable)
+				draggable.addClass('dragging')
+
+				draggable.css({
+					top: y,
+					left: x,
+					height: height,
+					width: width
+				})
+
+				var stopDragging = function(event2) {
+					$document.off('mousemove.cocalevent mouseup.cocalevent')
+					self.dragging = false
+					draggable.removeAttr('style').removeClass('dragging').appendTo(self.el)
+
+					self.calcDropPosition(event2)
+
+					self.body.draw()
 				}
 
-				currentDay.events.push(this)
-				current.date(current.date() + 1)
+				$document.on('mousemove.cocalevent', function(event2) {
+					event2.preventDefault()
+					if (!event2.buttons) return stopDragging(event2)
+
+					draggable.css({
+						top: event2.pageY - offsetY,
+						left: event2.pageX - offsetX
+					})
+				}).one('mouseup.cocalevent', stopDragging)
+
+				self.body.draw()
+			})
+		},
+
+		calcDropDay: function(week, x) {
+			for (var i = 0; i < week.days.length; i++) {
+				var day = week.days[i],
+					offsetLeft = day.el.offset().left,
+					offsetRight = offsetLeft + day.el.outerWidth()
+
+				if (x >= offsetLeft && x <= offsetRight) return day
+			}
+		},
+
+		calcDropPosition: function(event) {
+			var week = this.calcDropWeek(event.pageY)
+			if (!week) return
+
+			var day = this.calcDropDay(week, event.pageX)
+			if (!day) return
+
+			var diff = day.date.diff(this.start.clone().startOf('day'))
+			this.start = moment(+this.start + diff)
+			if (this.end) this.end = moment(+this.end + diff)
+		},
+
+		calcDropWeek: function(y) {
+			for (var i = 0; i < this.body.weeks.length; i++) {
+				var week = this.body.weeks[i],
+					offsetTop = week.el.offset().top,
+					offsetBottom = offsetTop + week.el.outerHeight()
+
+				if (y >= offsetTop && y <= offsetBottom) return week
 			}
 		},
 
 		draw: function() {
-			var drawn = this.drawn
-			this.drawn = true
-			window.setTimeout(function() {
-				this.drawn = false
-			})
-			return drawn ? $('<div class="cocal-event-line"></div>') : this.el
+			this.findDays()
+			var firstAvailablePos = this.findFirstAvailablePos()
+
+			for (var i = 0; i < this.days.length; i++) {
+				var day = this.days[i]
+				day.appendEvent(firstAvailablePos, this._draw(day.date, i === 0))
+			}
+			this.bindDrag()
+		},
+
+		_draw: function(date, isFirst) {
+			if (this.dragging) return ''
+			if (isFirst) return this.el
+			if (date.day() === this.body.config.weekStart) return this.el.clone()
+			return this.el.clone().empty()
+		},
+
+		findDays: function() {
+			this.days = []
+
+			var current = this.start.clone().startOf('day'),
+				end = this.end ? this.end.clone().startOf('day') : current.clone()
+
+			// Grab all of this event's day objects out of the calendar's body's weeks' days
+			while (current.isSameOrBefore(end)) {
+				var currentDay = this.body.findDay(current)
+				if (!currentDay) {
+					current.date(current.date() + 1)
+					continue // Date is out of the current calendar view range
+				}
+
+				this.days.push(currentDay)
+				current.date(current.date() + 1)
+			}
+		},
+
+		findFirstAvailablePos: function(offset) {
+			offset || (offset = 0)
+			for (var i = 0; i < this.days.length; i++) {
+				var day = this.days[i],
+					pos = day.firstAvailablePos(offset)
+
+				if (pos > offset) return this.findFirstAvailablePos(offset + 1)
+			}
+			return offset
 		}
 	}
 
 
+	/**
+		The Body handles drawing the days and drawing/updating the events of the calendar
+	*/
 	var Body = function(calendar, config) {
 		if (config.monthStart < 1) config.monthStart = 1
 		config.weekStart = Math.max(0, Math.min(6, config.weekStart - 1))
@@ -191,7 +329,6 @@
 			if (!this.config.edgeBorders) this.el.addClass('cocal-sans-edge-borders')
 			this.initWeeks(this.config)
 			this.initEvents(this.config.events || [])
-			this.draw()
 		},
 
 		initEvents: function(events) {
@@ -236,6 +373,10 @@
 				var week = this.weeks[i]
 				this.el.append(week.draw())
 			}
+			for (var i = 0; i < this.events.length; i++) {
+				var event = this.events[i]
+				event.draw() // events stick themselves into their days' el
+			}
 			return this.el
 		},
 
@@ -264,10 +405,8 @@
 		},
 
 		update: function() {
-			this.el.empty()
 			this.initWeeks(this.config) // TODO: make an intelligent diffing system, instead of just rewriting everything on update
-			this.initEvents(this.config.events || [])
-			this.draw()
+			// don't re-initialize the events (they only get initialized once for now)
 		}
 	}
 
@@ -326,6 +465,7 @@
 		this.date.startOf('day')
 
 		this.init()
+		this.draw()
 	}
 	Calendar.prototype = {
 		init: function() {
@@ -343,6 +483,11 @@
 			if (!config) return // the header is optional; don't put one in if they didn't specify config for one
 			this.header = new Header(this, config)
 			this.el.append(this.header.el)
+		},
+
+		draw: function() {
+			this.header.draw()
+			this.body.draw()
 		},
 
 		fireCommand: function(command) {
@@ -364,6 +509,7 @@
 		update: function() {
 			this.header.update()
 			this.body.update()
+			this.draw()
 		}
 	}
 

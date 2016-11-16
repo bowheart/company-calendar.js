@@ -28,7 +28,15 @@
 				font-size: 0.6em;
 			}
 			.cocal-day {
-				min-height: 160px;
+				height: 9vw;
+				max-height: 160px;
+			}
+
+			.label-good {
+				color: #47f;
+			}
+			.label-bad {
+				color: #f74;
 			}
 		</style>
 	</head>
@@ -38,14 +46,21 @@
 				edgeBorders: false,
 				events: [
 					{
-						name: 'A good party',
+						name: 'A good party A good party A good party A good party',
+						label: 'good',
 						start: 1478718049738,
 						end: 1479234450519
 					},
 					{
 						name: 'A bad party',
+						label: 'bad',
 						start: 1478718049738,
 						end: 1479234450519
+					},
+					{
+						name: 'A meh party',
+						label: 'bad',
+						start: 1479234450519,
 					}
 				],
 				header: {
@@ -53,7 +68,6 @@
 					center: ['<i class="fa fa-chevron-left"></i>::prev', 'format(MMMM YYYY)', '<i class="fa fa-chevron-right"></i>::next'],
 					right: ['<span class="tagline">This calendar rocketh</span>']
 				},
-				monthStart: 15,
 				weekStart: 2
 			})
 

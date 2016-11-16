@@ -32,7 +32,12 @@ a.cocal-header-item {
 	-webkit-user-select: none;
 }
 
+.cocal-body {
+	font-size: 13px;
+}
+
 .cocal-dayname {
+	font-size: 15px;
 	padding: 0.4em;
 	text-align: center;
 }
@@ -76,11 +81,43 @@ a.cocal-header-item {
 	background: rgba(0, 0, 0, 0.1);
 }
 
-.cocal-event-line {
-	border-bottom: 0.2em solid #bbb;
-	margin-top: 1.4em;
+.cocal-events-wrapper {
+	position: absolute;
+	top: 2em;
+	text-align: center;
 	width: 100%;
+	z-index: 1;
 }
-.cocal-event-line:first-of-type {
-	margin-top: 2.4em;
+
+.cocal-event {
+	height: 1.4em;
+}
+.cocal-event:not(.cocal-event-placeholder) {
+	background: repeating-linear-gradient(135deg, rgba(0,0,0,0), rgba(0,0,0,0) 8px, currentColor 9px, rgba(0,0,0,0) 10px);
+	opacity: 0.9;
+}
+.cocal-event:nth-last-of-type(n + 2) {
+	margin-bottom: 0.6em;
+}
+
+
+.cocal-draggable {
+	background: #fff;
+	border: 1px solid;
+	border-radius: 10px;
+	box-sizing: border-box;
+	cursor: pointer;
+	display: inline-block;
+	font-size: 13px;
+	height: 100%;
+	overflow: hidden;
+	padding: 0 12px;
+	text-align: center;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	width: 80%;
+}
+.cocal-draggable.dragging {
+	position: absolute;
+	z-index: 14;
 }
