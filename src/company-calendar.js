@@ -5,6 +5,15 @@
 */
 (function(outside, $, moment) {
 
+	// Some Helper Functions
+	var dayExcluded = function(date, config) {
+		var day = date.day()
+		return config.excludeSundays && day === 0 || config.excludeWeekends && ~[0, 6].indexOf(day)
+	}
+
+
+	// The Classes
+
 	var Header = function(calendar, config) {
 		this.calendar = calendar
 		this.config = config
@@ -71,6 +80,7 @@
 		this.date = date
 		this.start = start
 		this.end = end
+		this.isOverflow = true
 
 		this.init()
 	}
@@ -83,9 +93,10 @@
 		initDays: function(config, date) {
 			this.days = []
 			for (var i = 0; i < 7; date.date(date.date() + 1) && i++) {
-				if (i === 0 && config.excludeSundays || ~[0, 6].indexOf(i) && config.excludeWeekends) continue
+				if (dayExcluded(date, config)) continue
 
 				var day = new Day(date.clone(), date.isBefore(this.start) || date.isAfter(this.end))
+				if (!day.isOverflow) this.isOverflow = false
 				this.days.push(day)
 			}
 		},
@@ -361,7 +372,7 @@
 
 			while (actualStart.isBefore(actualEnd)) {
 				var week = new Week(config, actualStart.clone(), start, end)
-				this.weeks.push(week)
+				if (!week.isOverflow) this.weeks.push(week)
 				actualStart.date(actualStart.date() + 7)
 			}
 		},
@@ -384,9 +395,10 @@
 			if (!config.dayNames) return // the user doesn't want these
 
 			var row = $('<div class="cocal-daynames"></div>'),
-				date = moment().startOf('week')
+				date = moment().day(config.weekStart)
 
 			for (var i = 0; i < 7; date.date(date.date() + 1) && i++) {
+				if (dayExcluded(date, config)) continue
 				row.append('<div class="cocal-dayname">' + date.format('ddd') + '</div>')
 			}
 			return row
